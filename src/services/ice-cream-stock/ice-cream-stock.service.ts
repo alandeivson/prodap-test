@@ -4,11 +4,12 @@ import { Application } from '../../declarations';
 import { IceCreamStock } from './ice-cream-stock.class';
 import createModel from '../../models/ice-cream-stock.model';
 import hooks from './ice-cream-stock.hooks';
+import { Data } from '../ice-cream-withdrawal/ice-cream-withdrawal.class';
 
 // Add this service to the service type index
 declare module '../../declarations' {
   interface ServiceTypes {
-    'ice-cream-stock': IceCreamStock & ServiceAddons<any>;
+    'ice-cream-stock': IceCreamStock & ServiceAddons<Data>;
   }
 }
 

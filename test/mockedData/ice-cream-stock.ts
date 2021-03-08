@@ -13,3 +13,4 @@ export const validIceCreamEntry = {
   quantityInSale: 5,
   shelfLife: 12,
 };
+
