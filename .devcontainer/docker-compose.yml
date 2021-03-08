@@ -36,6 +36,9 @@ services:
     restart: unless-stopped
     ports:
       - "27017:27017"
+
+    entrypoint:
+      ["/usr/bin/mongod", "--replSet", "rs0", "--journal", "--bind_ip_all"]
     volumes:
       - mongo-data:/data/db
 
