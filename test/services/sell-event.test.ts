@@ -1,5 +1,6 @@
 import faker from "faker";
 import app from "../../src/app";
+import { SellEventData } from '../../src/services/sell-event/sell-event.class';
 import { validIceCreamEntry } from "../mockedData/ice-cream-stock";
 import { invalidSell } from "../mockedData/sell-event";
 
@@ -16,10 +17,27 @@ describe("'sellEvent' service", () => {
     } catch (e) {
       const { errors } = e;
       expect(errors["0,quantitySold"].message).toBe(
-        '"[0].quantitySold" must be a positive number'
+        '"[0].quantitySold" must be greater than or equal to 0'
       );
     }
   });
+  it("should create a sale entry when made a sale", async () => {
+    const stockService = app.service("ice-cream-stock");
+    const sellService = app.service("sell-event");
+    const productEntry = await stockService.create(validIceCreamEntry);
+    const saleRequest = {
+      productId: productEntry._id + "",
+      soldTime: faker.date.past(),
+      quantitySold: 3,
+    };
+    const sale = (await sellService.create([saleRequest])) as [SellEventData];
+    expect({
+      productId: sale[0].productId + "",
+      soldTime: sale[0].soldTime,
+      quantitySold: sale[0].quantitySold,
+    }).toStrictEqual(saleRequest);
+  });
+
   it("should decrease quantity retrieved for sale when made a sale", async () => {
     const stockService = app.service("ice-cream-stock");
     const sellService = app.service("sell-event");
@@ -43,7 +61,7 @@ describe("'sellEvent' service", () => {
     const stockEntry = {
       description: faker.lorem.lines(),
       stockQuantity: Math.floor(faker.random.number()),
-      quantityInSale: 0,
+      quantityInSale: 1,
       shelfLife: 12,
     };
     const productEntry = await stockService.create(stockEntry);

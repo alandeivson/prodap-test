@@ -18,7 +18,7 @@ describe("'iceCreamWithdrawal' service", () => {
     } catch (e) {
       const { errors } = e;
       expect(errors["0,quantity"].message).toBe(
-        '"[0].quantity" must be a positive number'
+        '"[0].quantity" must be greater than or equal to 0'
       );
     }
   });

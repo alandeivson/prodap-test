@@ -20,7 +20,7 @@ describe("'IceCreamStock' service", () => {
     } catch (e) {
       const { errors } = e;
       expect(errors.quantityInSale.message).toBe(
-        '"quantityInSale" must be a positive number'
+        '"quantityInSale" must be greater than or equal to 0'
       );
     }
   });

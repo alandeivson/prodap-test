@@ -27,7 +27,7 @@
     "test": "npm run compile && npm run jest",
     "dev": "ts-node-dev --no-notify src/",
     "start": "npm run compile && node lib/",
-    "jest": "jest --collect-coverage --forceExit",
+    "jest": "jest --collect-coverage --forceExit --runInBand",
     "compile": "shx rm -rf lib/ && tsc"
   },
   "standard": {
