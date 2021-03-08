@@ -1,7 +1,7 @@
 import Joi from "joi";
 import validate from "feathers-validate-joi";
 
-const iceCreamSchema = Joi.object().keys({
+const iceCreamSchema = Joi.object({
   description: Joi.string().required(),
   stockQuantity: Joi.number().integer().positive(),
   quantityInSale: Joi.number().integer().positive(),

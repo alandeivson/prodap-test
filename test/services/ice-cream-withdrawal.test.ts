@@ -1,6 +1,8 @@
+import { Paginated } from "@feathersjs/feathers";
 import app from "../../src/app";
-import { Data } from "../../src/services/ice-cream-withdrawal/ice-cream-withdrawal.class";
-import { OutOfStockError } from "../../src/services/ice-cream-withdrawal/ice-cream-withdrawal.errors";
+import iceCreamStockService, {
+  IIceCreamStock,
+} from "../../src/services/ice-cream-stock/ice-cream-stock.service";
 import {
   iceCreamEntry1,
   iceCreamEntry2,
@@ -19,8 +21,8 @@ describe("'iceCreamWithdrawal' service", () => {
       await service.create(invalidWithdrawal);
     } catch (e) {
       const { errors } = e;
-      expect(errors.quantityInSale.message).toBe(
-        '"quantity" must be a positive number'
+      expect(errors["0,quantity"].message).toBe(
+        '"[0].quantity" must be a positive number'
       );
     }
   });
@@ -32,53 +34,44 @@ describe("'iceCreamWithdrawal' service", () => {
 
     const iceCreamWithdrawal = [
       {
-        id: savedIceCreamEntry1._id,
+        _id: savedIceCreamEntry1._id + "",
         quantity: 2,
       },
       {
-        id: savedIceCreamEntry2._id,
+        _id: savedIceCreamEntry2._id + "",
         quantity: 3,
       },
     ];
-
     await iceCreamWithdrawalService.create(iceCreamWithdrawal);
-
-    const updatedEntry1 = (await stockService.find({
-      _id: savedIceCreamEntry1._id,
-    })) as Data[];
-    const updatedEntry2 = (await stockService.find({
-      _id: savedIceCreamEntry2._id,
-    })) as Data[];
-
+    const updatedEntry1 = await stockService.get(savedIceCreamEntry1._id + "");
+    const updatedEntry2 = await stockService.get(savedIceCreamEntry2._id + "");
     expect({
-      quantity1: updatedEntry1[0].stockQuantity,
-      quantity2: updatedEntry2[0].stockQuantity,
-    }).toBe({
+      quantity1: updatedEntry1.stockQuantity,
+      quantity2: updatedEntry2.stockQuantity,
+    }).toStrictEqual({
       quantity1: 11,
       quantity2: 0,
     });
   });
 
-  it("should return an error when trying to withdraw more icecream than the stocked", async () => {
+  it("should return an error when trying to withdraw more icecream than stocked", async () => {
     expect.assertions(1);
 
-    const iceCreamWithdrawalService = app.service("ice-cream-withdrawal");
-    const stockService = app.service("ice-cream-stock");
-    const savedIceCreamEntry1 = await stockService.create(iceCreamEntry1);
-    const savedIceCreamEntry2 = await stockService.create(iceCreamEntry2);
-
-    const iceCreamWithdrawal = [
-      {
-        id: savedIceCreamEntry1._id,
-        quantity: 2,
-      },
-      {
-        id: savedIceCreamEntry2._id,
-        quantity: 9,
-      },
-    ];
-
     try {
+      const iceCreamWithdrawalService = app.service("ice-cream-withdrawal");
+      const stockService = app.service("ice-cream-stock");
+      const savedIceCreamEntry1 = await stockService.create(iceCreamEntry1);
+      const savedIceCreamEntry2 = await stockService.create(iceCreamEntry2);
+      const iceCreamWithdrawal = [
+        {
+          _id: savedIceCreamEntry1._id + "",
+          quantity: 2,
+        },
+        {
+          _id: savedIceCreamEntry2._id + "",
+          quantity: 9,
+        },
+      ];
       await iceCreamWithdrawalService.create(iceCreamWithdrawal);
     } catch (error) {
       expect(error.message).toBe(

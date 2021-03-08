@@ -1,23 +1,18 @@
-import {
-  Id,
-  NullableId,
-  Paginated,
-  Params,
-  ServiceMethods,
-} from "@feathersjs/feathers";
-import { MongooseEntity } from "../../common-types/mongooseEntity";
 import { Application } from "../../declarations";
+import { OutOfStockError } from "./ice-cream-withdrawal.errors";
 
-export interface Data extends MongooseEntity {
-  description: string;
-  stockQuantity: number;
-  quantityInSale: number;
-  shelfLife: number;
+export interface Data {
+  _id: string;
+  quantity: number;
 }
 
 interface ServiceOptions {}
 
-export class IceCreamWithdrawal implements ServiceMethods<Data> {
+interface IIceCreamWithdrawal<T> {
+  create: (data: T[]) => any;
+}
+
+export class IceCreamWithdrawal implements IIceCreamWithdrawal<Data> {
   app: Application;
   options: ServiceOptions;
 
@@ -26,34 +21,36 @@ export class IceCreamWithdrawal implements ServiceMethods<Data> {
     this.app = app;
   }
 
-  async find(params?: Params): Promise<Data[] | Paginated<Data>> {
-    return [];
-  }
-
-  async get(id: Id, params?: Params): Promise<Data> {
-    return {
-      id,
-      text: `A new message with ID: ${id}!`,
-    };
-  }
-
-  async create(data: Data, params?: Params): Promise<Data> {
-    if (Array.isArray(data)) {
-      return Promise.all(data.map((current) => this.create(current, params)));
-    }
-
-    return data;
-  }
-
-  async update(id: NullableId, data: Data, params?: Params): Promise<Data> {
-    return data;
-  }
-
-  async patch(id: NullableId, data: Data, params?: Params): Promise<Data> {
-    return data;
-  }
-
-  async remove(id: NullableId, params?: Params): Promise<Data> {
-    return { id };
+  async create(data: Data[]): Promise<any> {
+    const iceCreamStockService = this.app.service("ice-cream-stock");
+    const updatePromises = data.map((item) => {
+      return iceCreamStockService.Model.startSession().then(async (session) => {
+        session.startTransaction();
+        const opts = { session };
+        const stockRegistry = await iceCreamStockService.Model.findById(
+          item._id
+        );
+        if (stockRegistry.stockQuantity - item.quantity < 0) {
+          await session.abortTransaction();
+          session.endSession();
+          throw new OutOfStockError();
+        }
+        await iceCreamStockService.Model.updateOne(
+          { _id: item._id },
+          {
+            $inc: {
+              //@ts-ignore
+              stockQuantity: -1 * item.quantity,
+              //@ts-ignore
+              quantityInSale: item.quantity,
+            },
+          },
+          opts
+        );
+        await session.commitTransaction();
+        return await session.endSession();
+      });
+    });
+    return Promise.all(updatePromises);
   }
 }
