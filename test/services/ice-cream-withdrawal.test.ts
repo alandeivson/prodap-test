@@ -1,8 +1,4 @@
-import { Paginated } from "@feathersjs/feathers";
 import app from "../../src/app";
-import iceCreamStockService, {
-  IIceCreamStock,
-} from "../../src/services/ice-cream-stock/ice-cream-stock.service";
 import {
   iceCreamEntry1,
   iceCreamEntry2,
