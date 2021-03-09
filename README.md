@@ -31,7 +31,18 @@ The easiest way to install it is to use docker and the [VSCode DevContainer](htt
 ## Installation with devcontainer
 
 Open the project with VSCode, access the command palette (usually F1) and enter the option "Open Folder in Container".
-It will start a remote container session. Once the setup is finished, you can start a terminal inside VSCode and run
+It will start a remote container session.
+To start a replica set you're gonna need to enter the mongo container shell and run 
+```sh
+mongo
+```
+```sh
+rs.initiate()
+```
+
+
+Once this setup is finished, you can start a terminal inside VSCode and run
+
 
 ```sh
 npm install
